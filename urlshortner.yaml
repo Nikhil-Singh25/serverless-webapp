@@ -1,0 +1,86 @@
+Resources:
+  MyBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: YOUR_BUCKET_NAME
+
+  MyTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: shortUrl
+          AttributeType: S
+      KeySchema:
+        - AttributeName: shortUrl
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      TableName: YOUR_TABLE_NAME
+
+  MyFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Handler: index.lambda_handler
+      Runtime: python3.9
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          import string
+          import random
+
+          s3 = boto3.client('s3')
+          dynamodb = boto3.resource('dynamodb')
+          table_name = 'YOUR_TABLE_NAME'
+
+          def lambda_handler(event, context):
+              long_url = event['queryStringParameters']['longUrl']
+              short_id = generate_short_id()
+              short_url = f'https://{s3.meta.endpoint_url.split(".")[0]}.s3.amazonaws.com/{short_id}'
+              
+              # Store short and long URLs in DynamoDB
+              table = dynamodb.Table(table_name)
+              table.put_item(Item={'shortUrl': short_url, 'longUrl': long_url})
+              
+              # Store long URL in S3 with short ID as object key
+              s3.put_object(Bucket='YOUR_BUCKET_NAME', Key=short_id, Body=long_url)
+              
+              return {
+                  'statusCode': 200,
+                  'headers': {'Content-Type': 'text/plain'},
+                  'body': short_url
+              }
+
+          def generate_short_id(length=8):
+              letters = string.ascii_lowercase + string.ascii_uppercase + string.digits
+              return ''.join(random.choice(letters) for i in range(length))
+      Environment:
+        Variables:
+          TABLE_NAME: YOUR_TABLE_NAME
+      Role: YOUR_LAMBDA_EXECUTION_ROLE
+
+  MyApi:
+    Type: "AWS::ApiGateway::RestApi"
+    Properties:
+      Name: YOUR_API_NAME
+  MyResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !GetAtt MyApi.RootResourceId
+      PathPart: shorten
+      RestApiId: !Ref MyApi
+  MyMethod:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref MyApi
+      ResourceId: !Ref MyResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MyFunction.Arn}/invocations
+
+  MyDeployment:
+    Type: "AWS::ApiGateway::Deployment"
+    Properties:
+      RestApiId: !Ref MyApi
