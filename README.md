@@ -2,7 +2,7 @@
 This project is a serverless web application built using AWS services such as API Gateway, Lambda functions, and DynamoDB. The web application provides a simple interface to create, read, update, and delete (CRUD) items in a DynamoDB table. The API Gateway is used to provide a RESTful interface to the Lambda functions, which handle the CRUD operations. The application is entirely serverless, meaning there are no servers to manage, and it can scale automatically to handle any amount of traffic. This project can be used as a starting point for building serverless web applications on AWS.
 
 ## Getting Started
-  you deploy the necessary services using AWS console or the Cloudformation Template [urlshortner](/urshortner.yaml)
+  #### you can deploy the necessary services using AWS console or by  using the Cloudformation Template [urlshortner](/urshortner.yaml)
    
   For deploying through console below are the steps you can follow :
   
@@ -21,7 +21,12 @@ Click on "Create"
 3. Create an AWS Lambda function to handle URL shortening requests
 * Navigate to the Lambda service in the AWS Management Console then Click on "Create function" & Choose "Author from scratch"
 * Give your function a name and choose python3.8(whatever the latest version is ) as the runtime
-* In the "Function code" section paste the code in [lambda.py](/lambda.py)
+* In the "Function code" section paste the code in [lambda.py](/lambda.py) & click on "create Function"
+* Click on the "Environment variables" tab and add the following variables:</br>
+  *BUCKET_NAME = your S3 bucket name
+  *TABLE_NAME = your DynamoDB table name
+
+4.
 
 ## Architecture
 
