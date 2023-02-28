@@ -14,7 +14,7 @@ The application is built using the following AWS services:
 
 
 ## Getting Started
-  #### you can deploy the necessary services using AWS console or by  using the Cloudformation Template [urlshortner](/urshortner.yaml)
+  #### you can deploy the necessary services using AWS console or by  using the Cloudformation Template [urlshortner](/urlshortner.yaml)
    
   For deploying through console below are the steps you can follow :
   
